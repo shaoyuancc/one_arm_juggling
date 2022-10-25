@@ -1,0 +1,6 @@
+
+directives:
+- add_directives:
+    file: file:///Users/chewchiashaoyuan/Documents/Software/robot_juggler/models/iiwa_and_wsg.dmd.yaml
+- add_directives:
+    file: file:///Users/chewchiashaoyuan/Documents/Software/robot_juggler/models/two_bins.dmd.yaml
