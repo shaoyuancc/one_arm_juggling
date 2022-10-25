@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import mpld3
+import time
 import numpy as np
 from IPython.display import HTML, display
 from manipulation import running_as_notebook, FindResource
@@ -39,12 +40,12 @@ def main():
     painter = IIWA_Painter(meshcat=meshcat)
 
     X_WG = painter.get_X_WG()
-    painter.visualize_frame('gripper_current', X_WG)
-    painter.visualize_frame('world_center', X_WorldCenter)
+    painter.visualize_frame(meshcat, 'gripper_current', X_WG)
+    painter.visualize_frame(meshcat, 'world_center', X_WorldCenter)
     # check key frames instead of interpolated trajectory
     def visualize_key_frames(frame_poses):
         for i, pose in enumerate(frame_poses):
-            painter.visualize_frame('frame_{}'.format(i), pose, length=0.05)
+            painter.visualize_frame(meshcat, 'frame_{}'.format(i), pose, length=0.05)
             
     key_frame_poses = compose_circular_key_frames(thetas, X_WorldCenter, painter.get_X_WG(), radius)   
     visualize_key_frames(key_frame_poses)
@@ -54,12 +55,17 @@ def main():
     # times = np.linspace(0, total_time, num_key_frames) # For trying it without the initial frame as the current gripper position
     traj = PiecewisePose.MakeLinear(times, key_frame_poses)
 
-    painter = IIWA_Painter(traj, meshcat)
+    painter = IIWA_Painter(meshcat=meshcat, traj=traj)
+    time.sleep(5)
+    print("starting to simulate!")
+
     painter.paint(sim_duration=total_time)
 
-    print("Done initializing!")
-    while True:
-        #Infinite loop
-        pass
+    print("Done simulating!")
+    time.sleep(20)
+    print("shutting down")
+    # while True:
+    #     #Infinite loop
+    #     pass
 
 main()
