@@ -118,7 +118,7 @@ class IIWA_Painter():
         simulator = Simulator(self.diagram, context)
         simulator.set_target_realtime_rate(1.0)
 
-        duration = sim_duration if running_as_notebook else 0.01
+        duration = sim_duration # if running_as_notebook else 0.01
         simulator.AdvanceTo(duration)
 
 class PseudoInverseController(LeafSystem):
@@ -169,4 +169,8 @@ def compose_circular_key_frames(thetas, X_WorldCenter, X_WorldGripper_init, radi
         X_WGn = X_WorldCenter @ X_CGn
         key_frame_poses_in_world.append(X_WGn)
         
+    return key_frame_poses_in_world
+
+def compose_eliptical_key_frames(X_WStart, X_WEnd):
+    key_frame_poses_in_world = [X_WStart, X_WEnd]
     return key_frame_poses_in_world

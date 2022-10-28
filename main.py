@@ -28,31 +28,32 @@ def main():
     R0 = RotationMatrix(np.array([[0, 1, 0], [0, 0, -1], [-1, 0, 0]]).T)
     X_WorldCenter = RigidTransform(R0, p0)
 
-    num_key_frames = 10
+    num_key_frames = 1
     """
     you may use different thetas as long as your trajectory starts
     from the Start Frame above and your rotation is positive
     in the world frame about +z axis
     thetas = np.linspace(0, 2*np.pi, num_key_frames)
     """
-    thetas = np.linspace(0, 2*np.pi, num_key_frames)
+    # thetas = np.linspace(0, 2*np.pi, num_key_frames)
 
     painter = IIWA_Painter(meshcat=meshcat)
 
     X_WG = painter.get_X_WG()
+    X_WEnd = RigidTransform(X_WG.rotation(),[0,0.3,0] + X_WG.translation())
     painter.visualize_frame(meshcat, 'gripper_current', X_WG)
-    painter.visualize_frame(meshcat, 'world_center', X_WorldCenter)
+    painter.visualize_frame(meshcat, 'X_WEnd', X_WEnd)
     # check key frames instead of interpolated trajectory
-    def visualize_key_frames(frame_poses):
-        for i, pose in enumerate(frame_poses):
-            painter.visualize_frame(meshcat, 'frame_{}'.format(i), pose, length=0.05)
+    # def visualize_key_frames(frame_poses):
+    #     for i, pose in enumerate(frame_poses):
+    #         painter.visualize_frame(meshcat, 'frame_{}'.format(i), pose, length=0.05)
             
-    key_frame_poses = compose_circular_key_frames(thetas, X_WorldCenter, painter.get_X_WG(), radius)   
-    visualize_key_frames(key_frame_poses)
+    # key_frame_poses = compose_circular_key_frames(thetas, X_WorldCenter, painter.get_X_WG(), radius)   
+    # visualize_key_frames(key_frame_poses)
+    key_frame_poses = compose_eliptical_key_frames(X_WG, X_WEnd)
 
-    total_time = 20
+    total_time = 10
     times = np.linspace(0, total_time, num_key_frames+1)
-    # times = np.linspace(0, total_time, num_key_frames) # For trying it without the initial frame as the current gripper position
     traj = PiecewisePose.MakeLinear(times, key_frame_poses)
 
     painter = IIWA_Painter(meshcat=meshcat, traj=traj)
@@ -62,8 +63,6 @@ def main():
     painter.paint(sim_duration=total_time)
 
     print("Done simulating!")
-    time.sleep(20)
-    print("shutting down")
     # while True:
     #     #Infinite loop
     #     pass
