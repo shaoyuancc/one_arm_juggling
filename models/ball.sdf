@@ -1,43 +1,43 @@
 <?xml version="1.0"?>
 <sdf version="1.7">
-  <model name="ball">
-    <pose>0 0 0 0 0 0</pose>
-    <link name="ball">
-      <inertial>
-        <mass>0.01</mass>
-      </inertial>
-      <visual name="ball">
-        <geometry>
-          <sphere>
-            <radius>0.02</radius>
-          </sphere>
-        </geometry>
-        <material>
-          <diffuse>1 0.55 0.016 1.0</diffuse>
-        </material>
-      </visual>
-      <collision name="ball_collision">
-        <geometry>
-          <sphere>
-            <radius>0.02</radius>
-          </sphere>
-        </geometry>
-        <drake:proximity_properties>
-          <drake:hunt_crossley_dissipation>0.1</drake:hunt_crossley_dissipation>
-        </drake:proximity_properties>
-        <surface>
-          <friction>
-            <ode>
-              <mu>0</mu>
-              <mu2>0</mu2>
-            </ode>
-          </friction>
-          <bounce>
-              <restitution_coefficient> 1. </restitution_coefficient>
-              <threshold>.0.</threshold>
-          </bounce>
-        </surface>
-      </collision>
-    </link>
-  </model>
+    <model name="ball">
+        <pose>0 0 0 0 0 0</pose>
+        <link name="ball">
+        <inertial>
+            <mass>0.01</mass>
+        </inertial>
+        <visual name="ball">
+            <geometry>
+            <sphere>
+                <radius>0.02</radius>
+            </sphere>
+            </geometry>
+            <material>
+            <diffuse>1 0.55 0.016 1.0</diffuse>
+            </material>
+        </visual>
+        <collision name="ball_collision">
+            <geometry>
+            <sphere>
+                <radius>0.02</radius>
+            </sphere>
+            </geometry>
+            <drake:proximity_properties>
+            <drake:hunt_crossley_dissipation>0.1</drake:hunt_crossley_dissipation>
+            </drake:proximity_properties>
+            <surface>
+            <friction>
+                <ode>
+                <mu>0</mu>
+                <mu2>0</mu2>
+                </ode>
+            </friction>
+            <bounce>
+                <restitution_coefficient> 1. </restitution_coefficient>
+                <threshold>.0.</threshold>
+            </bounce>
+            </surface>
+        </collision>
+        </link>
+    </model>
 </sdf>
