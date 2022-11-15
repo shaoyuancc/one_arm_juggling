@@ -22,32 +22,23 @@ directives:
     X_PC:
         translation: [0, 0, 0.09]
         rotation: !Rpy { deg: [90, 0, 90]}
-- add_frame:
-    name: bin0_origin
-    X_PF:
-      base_frame: world
-      rotation: !Rpy { deg: [0.0, 0.0, 90.0 ]}
-      translation: [-0.05, -0.5, -0.015]
-
 - add_model:
-    name: bin0
-    file: package://drake/examples/manipulation_station/models/bin.sdf
-
+    name: floor
+    file: package://manipulation/floor.sdf
 - add_weld:
-    parent: bin0_origin
-    child: bin0::bin_base
-
+    parent: world
+    child: floor::box
+    X_PC:
+        translation: [0, 0, -.5]
 - add_frame:
-    name: bin1_origin
+    name: camera0_origin
     X_PF:
-      base_frame: world
-      rotation: !Rpy { deg: [0.0, 0.0, 180.0 ]}
-      translation: [0.5, 0.05, -0.015]
-
+        base_frame: world
+        rotation: !Rpy { deg: [-130.0, 0, 90.0]}
+        translation: [.25, -.5, .4]
 - add_model:
-    name: bin1
-    file: package://drake/examples/manipulation_station/models/bin.sdf
-
+    name: camera0
+    file: package://manipulation/camera_box.sdf
 - add_weld:
-    parent: bin1_origin
-    child: bin1::bin_base
+    parent: camera0_origin
+    child: camera0::base
