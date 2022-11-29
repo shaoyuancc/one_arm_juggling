@@ -3,6 +3,8 @@ import numpy as np
 import pydrake.all
 from pydrake.all import *
 
+from manipulation.scenarios import *
+
 #IIWA_DEFAULT_Q = [0.0, 0.1, 0, -1.2, 0, 1.6, 0]
 TABLE_HEIGHT = 0.3
 #PADDLE_RADIUS = 0.225
