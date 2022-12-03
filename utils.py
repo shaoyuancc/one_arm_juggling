@@ -437,8 +437,6 @@ def MakeDirectManipulationStation(model_directives=None,
     plant.Finalize()
 
     # Visualize contacts
-    # lcm_publisher_system = ConnectContactResultsToDrakeVisualizer(
-    #                             builder, plant, scene_graph)
     cparams = ContactVisualizerParams()
     cparams.force_threshold = 1e-4
     cparams.newtons_per_meter = 2
@@ -446,9 +444,6 @@ def MakeDirectManipulationStation(model_directives=None,
     cparams.publish_period = time_step
     contact_visualizer = ContactVisualizer.AddToBuilder(
         builder, plant, meshcat, cparams)
-    # print_contact_results = builder.AddSystem(PrintContactResults())
-    # builder.Connect(plant.get_contact_results_output_port(),
-    #                 print_contact_results.get_input_port())
 
     for i in range(plant.num_model_instances()):
         model_instance = ModelInstanceIndex(i)
