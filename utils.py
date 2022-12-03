@@ -1,4 +1,6 @@
 import numpy as np
+from IPython.display import clear_output
+
 from pydrake.all import (AddMultibodyPlantSceneGraph, BsplineTrajectory,
                          DiagramBuilder, KinematicTrajectoryOptimization,
                          MeshcatVisualizer, MeshcatVisualizerParams,
@@ -7,7 +9,9 @@ from pydrake.all import (AddMultibodyPlantSceneGraph, BsplineTrajectory,
                          StartMeshcat, JacobianWrtVariable, RollPitchYaw,
                          JointSliders, RotationMatrix,
                          InverseKinematics,
-                         LeafSystem, AbstractValue
+                         LeafSystem, AbstractValue,
+                         ConnectContactResultsToDrakeVisualizer, ContactResults, ContactVisualizerParams,
+                         ContactVisualizer,
                         )
 
 from manipulation import running_as_notebook
@@ -22,7 +26,7 @@ def calculate_ball_vels(p1, p2, height):
     # p2: (x, y, z), ndarray
     # height, pos real number
 
-    g = 9.8
+    g = 9.80665
 
     t = np.sqrt(2 * height / g)
 
@@ -373,7 +377,8 @@ def MakeDirectManipulationStation(model_directives=None,
                             camera_prefix="camera",
                             ball_prefix="ball",
                             prefinalize_callback=None,
-                            package_xmls=[]):
+                            package_xmls=[],
+                            meshcat=None):
     """
     Creates a manipulation station system, which is a sub-diagram containing:
       - A MultibodyPlant with populated via the Parser from the
@@ -430,6 +435,20 @@ def MakeDirectManipulationStation(model_directives=None,
     if prefinalize_callback:
         prefinalize_callback(plant)
     plant.Finalize()
+
+    # Visualize contacts
+    # lcm_publisher_system = ConnectContactResultsToDrakeVisualizer(
+    #                             builder, plant, scene_graph)
+    cparams = ContactVisualizerParams()
+    cparams.force_threshold = 1e-4
+    cparams.newtons_per_meter = 2
+    cparams.radius = 0.001
+    cparams.publish_period = time_step
+    contact_visualizer = ContactVisualizer.AddToBuilder(
+        builder, plant, meshcat, cparams)
+    # print_contact_results = builder.AddSystem(PrintContactResults())
+    # builder.Connect(plant.get_contact_results_output_port(),
+    #                 print_contact_results.get_input_port())
 
     for i in range(plant.num_model_instances()):
         model_instance = ModelInstanceIndex(i)
@@ -559,3 +578,30 @@ def MakeDirectManipulationStation(model_directives=None,
     diagram = builder.Build()
     diagram.set_name("ManipulationStation")
     return diagram
+
+class PrintContactResults(LeafSystem):
+    """ Helpers for printing contact results
+    """
+    def __init__(self):
+        LeafSystem.__init__(self)
+        self.DeclareAbstractInputPort("contact_results",
+                                      AbstractValue.Make(ContactResults()))
+        self.DeclarePeriodicUnrestrictedUpdateEvent(0.001, 0.0, self.Publish)
+
+    def Publish(self, context, state):
+        formatter = {'float': lambda x: '{:5.2f}'.format(x)}
+        results = self.get_input_port().Eval(context)
+        print(f"PrintContactResults at time {context.get_time()}")
+        if results.num_point_pair_contacts()==0:
+            print("no contact")
+        for i in range(results.num_point_pair_contacts()):
+            info = results.point_pair_contact_info(i)
+            pair = info.point_pair()
+            force_string = np.array2string(
+                info.contact_force(), formatter=formatter)
+            print(
+              f"Pair ({i}) "
+              f"slip speed:{info.slip_speed():.4f}, "
+              f"depth:{pair.depth:.4f}, "
+              f"force:{force_string}\n")
+        clear_output(wait=True)
