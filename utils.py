@@ -760,9 +760,6 @@ class MyMeshcatPoseSliders(LeafSystem):
                                   name=value._fields[i],
                                   decrement_keycode=decrement_keycode[i],
                                   increment_keycode=increment_keycode[i])
-                print(
-                    f"{value._fields[i]} : {decrement_keycode[i]} / {increment_keycode[i]}"  # noqa
-                )
 
     def __del__(self):
         for s in ['roll', 'pitch', 'yaw', 'x', 'y', 'z']:
@@ -848,7 +845,6 @@ class MyMeshcatPoseSliders(LeafSystem):
         publishing_context = publishing_system.GetMyContextFromRoot(
             root_context)
 
-        print("Press the 'Stop PoseSliders' button in Meshcat to continue.")
         self._meshcat.AddButton("Stop PoseSliders", "Escape")
         while self._meshcat.GetButtonClicks("Stop PoseSliders") < 1:
             if self._update_values():
@@ -906,14 +902,11 @@ directives:
         controller_plant,
         frame=controller_plant.GetFrameByName("extra_frame"))
 
-    # print(dir(controller_plant.GetFrameByName("body")))
-
     builder.Connect(differential_ik.get_output_port(),
                     station.GetInputPort("iiwa_position"))
     builder.Connect(station.GetOutputPort("iiwa_state_estimated"),
                     differential_ik.GetInputPort("robot_state"))
 
-    # p_I7B_I7 = [0, 0, 0.11 + 0.09]
     # Set up teleop widgets.
     teleop = builder.AddSystem(
         MyMeshcatPoseSliders(
@@ -956,7 +949,7 @@ directives:
         simulator.AdvanceTo(simulator.get_context().get_time() + 1.0)
     
     meshcat.Delete()
-    print(f"final spatial positions {teleop._get_transform()}")
+    print(f"final spatial positions {teleop._get_transform().translation()}")
     print(f"planned final spatial position {p_target}")
-    print(f"final joint positions {plant.GetPositions(plant_context)}")
+    print(f"final joint positions {plant.GetPositions(plant_context)[:7]}")
     return plant.GetPositions(plant_context)[:7]
