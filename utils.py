@@ -36,7 +36,26 @@ from pydrake.perception import BaseField, Fields, PointCloud
 from pydrake.solvers.mathematicalprogram import BoundingBoxConstraint
 from pydrake.systems.framework import (DiagramBuilder, EventStatus, LeafSystem,
                                        PublishEvent, VectorSystem)
-                    
+
+def get_ball_poses_from_gripper_poses(X_WThrow, X_WCatch, p_GB_G):
+    p_ThrowB_W = X_WThrow.rotation() @ p_GB_G
+    X_WThrowB_W = RigidTransform(X_WThrow.rotation(), X_WThrow.translation() +  p_ThrowB_W)
+    p_CatchB_W = X_WCatch.rotation() @ p_GB_G
+    X_WCatchB_W = RigidTransform(X_WCatch.rotation(), X_WCatch.translation() +  p_CatchB_W)
+    return X_WThrowB_W, X_WCatchB_W
+
+def add_target_spheres(X_WThrowB_W, X_WCatchB_W, meshcat, radius = 0.02):
+    meshcat.SetObject("throw", Sphere(radius), rgba=Rgba(.9, .1, .1, 1))
+    meshcat.SetTransform("throw", X_WThrowB_W)
+    meshcat.SetObject("catch", Sphere(radius), rgba=Rgba(.1, .9, .1, 1))
+    meshcat.SetTransform("catch", X_WCatchB_W)
+
+def vectors_within_eps(vec_a, vec_b, eps=0.005):
+    return (vec_a <= vec_b + eps * np.linalg.norm(vec_b)).all() and (vec_a >= vec_b - eps * np.linalg.norm(vec_b)).all()
+
+def offset_vec_by_eps(vec, eps):
+        return vec - eps * np.linalg.norm(vec), vec + eps * np.linalg.norm(vec)
+         
 def calculate_ball_vels(p1, p2, height):
     # p1: (x, y, z), ndarray
     # p2: (x, y, z), ndarray
@@ -338,7 +357,6 @@ def MyMakeManipulationStation(model_directives=None,
             controller_plant.AddFrame(
                 FixedOffsetFrame("extra_frame", controller_plant.GetFrameByName("iiwa_link_7"), X_7E)
             )
-            print("Added extra frame!")
             controller_plant.Finalize()
 
             # Add the iiwa controller
@@ -750,7 +768,6 @@ class MyMeshcatPoseSliders(LeafSystem):
         self._value = list(value)
         self._body_index = body_index
 
-        print("Keyboard Controls:")
         for i in range(6):
             if visible[i]:
                 meshcat.AddSlider(min=min_range[i],
@@ -854,8 +871,7 @@ class MyMeshcatPoseSliders(LeafSystem):
 
         self._meshcat.DeleteButton("Stop PoseSliders")
 
-def get_q_with_diffik(q_original, p_target):
-    meshcat = StartMeshcat()
+def get_q_with_diffik(q_original, p_target, meshcat):
     builder = DiagramBuilder()
     model_directives = """
 directives:
@@ -880,8 +896,8 @@ directives:
     parent: iiwa::iiwa_link_7
     child: wsg::body
     X_PC:
-        translation: [0, 0, 0.2]
-        rotation: !Rpy { deg: [0, 0, 0]}
+        translation: [0, 0, 0.09]
+        rotation: !Rpy { deg: [90, 0, 90]}
     """
     time_step = 0.001
     station = builder.AddSystem(
@@ -948,8 +964,7 @@ directives:
         teleop.SetXyz(p_target)
         simulator.AdvanceTo(simulator.get_context().get_time() + 1.0)
     
-    meshcat.Delete()
     print(f"final spatial positions {teleop._get_transform().translation()}")
     print(f"planned final spatial position {p_target}")
-    print(f"final joint positions {plant.GetPositions(plant_context)[:7]}")
+    # print(f"final joint positions {plant.GetPositions(plant_context)[:7]}")
     return plant.GetPositions(plant_context)[:7]
