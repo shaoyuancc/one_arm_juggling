@@ -15,8 +15,7 @@ from pydrake.all import (AddMultibodyPlantSceneGraph, BsplineTrajectory,
                         )
 
 from manipulation import running_as_notebook
-from manipulation.meshcat_utils import (PublishPositionTrajectory, WsgButton,
-                                        MeshcatPoseSliders)
+from manipulation.meshcat_utils import (PublishPositionTrajectory, WsgButton)
 from manipulation.scenarios import *
 from manipulation.utils import AddPackagePaths, FindResource
 
@@ -88,6 +87,10 @@ def catch_pv_from_ball_pvt(p_WBall, v_WBall, t_travel):
     V_WCatch[2] -= g * t_travel
 
     return p_WCatch, V_WCatch
+
+def dist_fallen_in_t(t):
+    g = 9.80665
+    return 1/2 * g * t ** 2
 
 def SpatialVelToJointVelConverter():
     builder = DiagramBuilder()
@@ -964,7 +967,7 @@ directives:
         teleop.SetXyz(p_target)
         simulator.AdvanceTo(simulator.get_context().get_time() + 1.0)
     
-    print(f"final spatial positions {teleop._get_transform().translation()}")
-    print(f"planned final spatial position {p_target}")
+    # print(f"final spatial positions {teleop._get_transform().translation()}")
+    # print(f"planned final spatial position {p_target}")
     # print(f"final joint positions {plant.GetPositions(plant_context)[:7]}")
     return plant.GetPositions(plant_context)[:7]
